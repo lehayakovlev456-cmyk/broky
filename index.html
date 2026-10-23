@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>broky</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b1b1d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+:root{--bg:#f3f3f1;--text:#2a2a2c;--mute:#78787c;--user:#e6e6e3;--line:#d9d9d5;--card:#fbfbfa;--acc:#4b5563}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1b1d;--text:#dededc;--mute:#8b8b90;--user:#2a2a2d;--line:#37373a;--card:#232326;--acc:#9aa3b2}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{max-width:720px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;padding:0 14px;padding-top:env(safe-area-inset-top)}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+header span{font:600 16px system-ui,sans-serif;letter-spacing:.2px}
+#keybtn,#menubtn,#newchat{border:1px solid var(--line);background:none;color:var(--mute);border-radius:6px;padding:5px 10px;font:inherit;font-size:13px;cursor:pointer}
+#keybox{display:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;margin:8px 0;font-size:13px;color:var(--mute)}
+#keybox label{display:block;margin-top:8px;color:var(--text)}
+#log{flex:1;overflow-y:auto;padding:8px 0 16px}
+.hello{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.hello .star{color:var(--mute);font-size:26px;line-height:1}
+.hello h1{font:500 22px/1.3 system-ui,sans-serif;margin:12px 0 0;color:var(--text)}
+.u{display:flex;justify-content:flex-end;margin:14px 0}
+.u div{background:var(--user);border-radius:12px;padding:9px 13px;max-width:85%;white-space:pre-wrap;word-break:break-word}
+.u img{display:block;max-width:100%;max-height:240px;border-radius:8px;margin-bottom:6px}
+.a{margin:14px 0;word-break:break-word}
+.a pre{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;overflow-x:auto;font-size:13.5px;margin:8px 0}
+.a code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:var(--user);padding:1px 5px;border-radius:4px}
+.a pre code{background:none;padding:0}
+.katex-display{overflow-x:auto;overflow-y:hidden;margin:.6em 0}.katex{font-size:1.1em}
+.think{color:var(--mute);font-size:20px;animation:p 1.4s ease-in-out infinite}
+@keyframes p{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.think{animation:none}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 8px 8px 12px;margin-bottom:max(10px,env(safe-area-inset-bottom))}
+#prev{display:none;align-items:center;gap:8px;padding:2px 0 8px}
+#prev img{height:56px;border-radius:6px}
+#prev button{border:0;background:var(--user);color:var(--text);border-radius:50%;width:24px;height:24px;cursor:pointer}
+.row{display:flex;align-items:flex-end;gap:6px}
+textarea{flex:1;border:0;outline:0;resize:none;background:none;color:var(--text);font:inherit;max-height:160px;padding:6px 0}
+.ib{flex:none;width:34px;height:34px;border-radius:8px;border:0;cursor:pointer;font-size:19px;display:grid;place-items:center}
+#att{background:none;color:var(--mute)}
+#send{background:var(--acc);color:var(--bg)}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button{transition:opacity .2s,background .2s,transform .15s}
+button:active{transform:scale(.94)}
+.u,.a{animation:in .3s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+#log{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){#panel,#dback,.u,.a,button{transition:none;animation:none}}
+.hl{display:flex;align-items:center;gap:10px}
+#menubtn{padding:4px 10px;font-size:16px}
+#drawer{position:fixed;inset:0;display:flex;z-index:10;visibility:hidden;transition:visibility 0s .3s}
+#drawer.open{visibility:visible;transition:visibility 0s}
+#panel{width:min(300px,82vw);height:100%;background:var(--bg);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:14px 12px;padding-top:max(14px,env(safe-area-inset-top));transform:translateX(-100%);transition:transform .3s cubic-bezier(.32,.72,0,1);will-change:transform}
+#drawer.open #panel{transform:none}
+#dback{flex:1;background:rgba(0,0,0,.4);opacity:0;transition:opacity .3s ease}
+#drawer.open #dback{opacity:1}
+#newchat{width:100%;padding:9px;color:var(--text);margin-bottom:10px;text-align:left}
+#clist{flex:1;overflow-y:auto}
+.ci{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:14px}
+.ci{transition:background .2s}.ci:hover{background:var(--user)}
+.ci.on{background:var(--user)}
+.ci span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci button{background:none;border:0;color:var(--mute);cursor:pointer;font-size:15px}
+.note{text-align:center;font-size:12px;color:var(--mute);margin:-4px 0 8px}
+</style>
+</head>
+<body>
+<div id="drawer"><div id="panel"><button id="newchat">＋ Новый чат</button><div id="clist"></div></div><div id="dback"></div></div>
+<div class="app">
+  <header><div class="hl"><button id="menubtn" aria-label="Чаты">☰</button><span>broky</span></div><button id="keybtn">Режим</button></header>
+  <div id="keybox"><b>Как отвечать</b>
+    <label><input type="radio" name="mode" value="online" checked> Онлайн: бесплатно, понимает фото</label>
+    <label><input type="radio" name="mode" value="local"> В браузере: скачает ~1 ГБ один раз, без фото, нужен Chrome с WebGPU</label></div>
+  <div id="log"><div class="hello" id="hello"><div class="star">✱</div><h1>Чем помочь сегодня?</h1></div></div>
+  <div class="box">
+    <div id="prev"></div>
+    <div class="row">
+      <button class="ib" id="att" aria-label="Прикрепить фото">＋</button>
+      <input type="file" id="file" accept="image/*" hidden>
+      <textarea id="q" rows="1" placeholder="Напиши вопрос или прикрепи фото"></textarea>
+      <button class="ib" id="send" aria-label="Отправить">↑</button>
+    </div>
+  </div>
+  <div class="note">ИИ может ошибаться, проверяй важные ответы.</div>
+</div>
+
+<script>
+const KB=[
+{s:"Алгебра",t:"Квадратное уравнение и дискриминант",k:["квадратн","дискриминант","ax2","корни уравнения"],
+a:"Уравнение <b>ax² + bx + c = 0</b>.<br>Дискриминант <b>D = b² − 4ac</b>.<br>D &gt; 0 — два корня: x = (−b ± √D) / 2a.<br>D = 0 — один корень: x = −b / 2a.<br>D &lt; 0 — корней нет.<br>Попробуй: напиши «реши x^2-5x+6=0»."},
+{s:"Алгебра",t:"Теорема Виета",k:["виет"],
+a:"Для x² + px + q = 0: <b>x₁ + x₂ = −p</b>, <b>x₁ · x₂ = q</b>.<br>Пример: x² − 5x + 6 = 0 → сумма 5, произведение 6 → корни 2 и 3."},
+{s:"Алгебра",t:"Арифметическая прогрессия",k:["арифметическ","прогресс"],
+a:"Каждый член больше предыдущего на d.<br><b>aₙ = a₁ + (n−1)d</b><br><b>Sₙ = (a₁ + aₙ)·n / 2</b> = (2a₁ + (n−1)d)·n / 2"},
+{s:"Алгебра",t:"Геометрическая прогрессия",k:["геометрическ","знаменател"],
+a:"Каждый член больше предыдущего в q раз.<br><b>bₙ = b₁·qⁿ⁻¹</b><br><b>Sₙ = b₁(qⁿ − 1)/(q − 1)</b><br>Бесконечно убывающая (|q|&lt;1): <b>S = b₁/(1 − q)</b>"},
+{s:"Алгебра",t:"Свойства степеней и корней",k:["степен","корень","корн"],
+a:"aᵐ·aⁿ = aᵐ⁺ⁿ; aᵐ/aⁿ = aᵐ⁻ⁿ; (aᵐ)ⁿ = aᵐⁿ; a⁰ = 1; a⁻ⁿ = 1/aⁿ.<br>√(ab) = √a·√b; √(a/b) = √a/√b; (√a)² = a при a ≥ 0."},
+{s:"Алгебра",t:"Функции: линейная, парабола, гипербола",k:["функци","парабол","график","гипербол"],
+a:"Линейная <b>y = kx + b</b>: k — наклон, b — пересечение с Oy.<br>Парабола <b>y = ax² + bx + c</b>: ветви вверх при a &gt; 0; вершина x₀ = −b/2a.<br>Гипербола <b>y = k/x</b>: ветви в I и III четвертях при k &gt; 0."},
+{s:"Алгебра",t:"Неравенства",k:["неравенств","интервал"],
+a:"При умножении или делении на отрицательное число знак неравенства <b>меняется</b>.<br>Квадратное неравенство: найди корни, нарисуй параболу, выбери нужные промежутки."},
+{s:"Геометрия",t:"Теорема Пифагора",k:["пифагор","гипотенуз","катет"],
+a:"В прямоугольном треугольнике <b>c² = a² + b²</b>, c — гипотенуза.<br>Тройки: 3-4-5, 5-12-13, 8-15-17."},
+{s:"Геометрия",t:"Площади фигур",k:["площад"],
+a:"Треугольник: S = ½·a·h = ½·ab·sinC.<br>Параллелограмм: S = a·h.<br>Трапеция: S = (a+b)/2 · h.<br>Ромб: S = ½·d₁·d₂.<br>Круг: S = πr²."},
+{s:"Геометрия",t:"Синус, косинус, тангенс",k:["синус","косинус","тангенс","sin","cos","тригоном"],
+a:"В прямоугольном треугольнике:<br><b>sin α</b> = противолежащий катет / гипотенуза<br><b>cos α</b> = прилежащий катет / гипотенуза<br><b>tg α</b> = противолежащий / прилежащий<br>sin²α + cos²α = 1. Значения: 30° → ½, √3/2; 45° → √2/2; 60° → √3/2, ½."},
+{s:"Геометрия",t:"Теоремы синусов и косинусов",k:["теорема синус","теорема косинус","произвольн"],
+a:"<b>a/sinA = b/sinB = c/sinC = 2R</b><br><b>c² = a² + b² − 2ab·cosC</b>"},
+{s:"Геометрия",t:"Окружность",k:["окружност","хорд","касательн","вписанн","центральн"],
+a:"Длина C = 2πr. Центральный угол равен дуге; вписанный угол — половине дуги.<br>Касательная ⊥ радиусу в точке касания.<br>Вписанный четырёхугольник: сумма противоположных углов 180°."},
+{s:"Геометрия",t:"Подобие треугольников",k:["подоб"],
+a:"Признаки: по двум углам; по двум сторонам и углу между ними; по трём сторонам.<br>Площади относятся как квадрат коэффициента подобия k²."},
+{s:"Геометрия",t:"Векторы",k:["вектор"],
+a:"Вектор AB = (x₂−x₁; y₂−y₁). Длина |a| = √(x²+y²).<br>Скалярное произведение: a·b = x₁x₂ + y₁y₂ = |a||b|cosφ."},
+{s:"Физика",t:"Равномерное движение и ускорение",k:["скорост","ускорен","путь","равноускор","движен"],
+a:"Равномерное: <b>s = v·t</b>.<br>Равноускоренное: <b>v = v₀ + at</b>, <b>s = v₀t + at²/2</b>.<br>Свободное падение: g ≈ 9,8 м/с² (≈10 в задачах)."},
+{s:"Физика",t:"Законы Ньютона",k:["ньютон","сила","инерц"],
+a:"1) Без действия сил тело сохраняет скорость.<br>2) <b>F = ma</b>.<br>3) Силы взаимодействия равны и противоположны: F₁ = −F₂.<br>Вес и тяжесть: P = mg."},
+{s:"Физика",t:"Импульс и энергия",k:["импульс","энерги","работа","мощност"],
+a:"Импульс <b>p = mv</b>; закон сохранения: сумма импульсов системы постоянна.<br>Eк = mv²/2; Eп = mgh.<br>Работа A = F·s·cosα; мощность N = A/t."},
+{s:"Физика",t:"Закон Ома и электричество",k:["ом","ток","напряжен","сопротивлен","электр"],
+a:"<b>I = U / R</b>.<br>Последовательно: R = R₁ + R₂, ток одинаков.<br>Параллельно: 1/R = 1/R₁ + 1/R₂, напряжение одинаково.<br>Мощность P = UI; работа A = UIt; закон Джоуля–Ленца Q = I²Rt."},
+{s:"Физика",t:"Давление и сила Архимеда",k:["давлен","архимед","плотност"],
+a:"Давление p = F/S; в жидкости p = ρgh.<br>Сила Архимеда <b>F = ρ_ж·g·V</b>. Плотность ρ = m/V."},
+{s:"Химия",t:"Периодическая система",k:["периодическ","менделеев","период","группа"],
+a:"Номер элемента = заряд ядра = число протонов. Номер периода = число электронных слоёв. Номер группы (A) = число электронов на внешнем слое.<br>В периоде слева направо металлические свойства слабеют; в группе сверху вниз усиливаются."},
+{s:"Химия",t:"Классы неорганических веществ",k:["оксид","кислот","основан","соль","щёлоч","щелоч"],
+a:"Оксиды (Э₂Oₙ), кислоты (H + кислотный остаток), основания (металл + OH), соли (металл + кислотный остаток).<br>Кислота + основание → соль + вода (нейтрализация).<br>Металл + кислота → соль + H₂ (если металл стоит до водорода в ряду активности)."},
+{s:"Химия",t:"Ионный обмен и реакции",k:["ионн","электролит","диссоциац","реакци","окислител","овр"],
+a:"Реакция ионного обмена идёт до конца, если выпадает осадок, выделяется газ или образуется вода.<br>ОВР: окислитель принимает электроны, восстановитель отдаёт. Уравнивай по электронному балансу."},
+{s:"Химия",t:"Моль и расчёты",k:["моль","молярн","масса вещества"],
+a:"<b>n = m / M</b>; V = n·Vm, где Vm = 22,4 л/моль (н. у.).<br>Число частиц N = n·Nₐ, Nₐ = 6,02·10²³."},
+{s:"Информатика",t:"Системы счисления",k:["двоичн","систем счислен","перевод","16-ричн"],
+a:"Из десятичной в двоичную: дели на 2, читай остатки снизу вверх.<br>Из двоичной в десятичную: сумма цифр × 2^позиция.<br>Пример: 1011₂ = 8+2+1 = 11.<br>1 байт = 8 бит; 1 Кбайт = 1024 байта."},
+{s:"Информатика",t:"Алгоритмы и логика",k:["алгоритм","цикл","ветвлен","логик","и или не","python","питон"],
+a:"Три базовые конструкции: следование, ветвление (if), цикл (for/while).<br>Логика: И — истина, если оба истинны; ИЛИ — если хоть одно; НЕ — инверсия.<br>Python: <code>for i in range(5): print(i)</code>"},
+{s:"Информатика",t:"Количество информации",k:["информац","бит","байт","кодирован"],
+a:"Алфавит из N символов: на символ нужно i бит, где <b>N = 2ⁱ</b>. Сообщение: I = K·i.<br>Изображение: I = ширина·высота·глубина цвета."},
+{s:"Русский",t:"Н и НН в суффиксах",k:["нн","н и нн","причасти","прилагательн"],
+a:"НН: в прилагательных от существительных на -н (каменный), с суффиксами -онн-, -енн-; в причастиях с приставкой или зависимыми словами (прочитанная книга).<br>Н: в кратких формах пишется столько же (стеклянный — стеклянна)... но в кратких причастиях — одна Н."},
+{s:"Русский",t:"Сложное предложение: запятые",k:["запят","союз","сложноподчин","сложносочин","бсп","придаточн"],
+a:"Между частями сложного предложения запятая ставится перед союзами (и, но, что, потому что, чтобы, если…).<br>Сложноподчинённое: придаточное выделяется запятыми с двух сторон, если стоит внутри.<br>Бессоюзное: запятая (перечисление), двоеточие (пояснение), тире (противопоставление, следствие)."},
+{s:"Русский",t:"ОГЭ: сочинение и изложение",k:["огэ","сочинен","изложен","сжат"],
+a:"Сжатое изложение: выдели микротемы, убери детали, объедини однородное. Объём — не менее 70 слов.<br>Сочинение 9.3: тезис → пример → пояснение → вывод. Не забудь абзацы и 150+ слов."}
+];
+
+const $=id=>document.getElementById(id),log=$("log"),q=$("q");
+let hist=[],img=null,view=[];
+let busy=false;
+$("keybtn").onclick=()=>{const b=$("keybox");b.style.display=b.style.display==="block"?"none":"block"};
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function md0(s){
+  return s.split("```").map((p,i)=>{
+    if(i%2)return"<pre><code>"+esc(p.replace(/^\w*\n/,""))+"</code></pre>";
+    return esc(p).replace(/^#{1,3} (.*)$/gm,"<b>$1</b>").replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>").replace(/^[-*] /gm,"• ").replace(/\n/g,"<br>");
+  }).join("");
+}
+const plain=t=>t.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,"($1)/($2)").replace(/\\neq/g,"≠").replace(/\\(cdot|times)/g,"×").replace(/\\sqrt\{([^{}]*)\}/g,"√($1)").replace(/\\[,;! ]/g," ").replace(/\\[a-zA-Z]+/g,"").replace(/[{}]/g,"");
+function md(s){
+  const M=[];
+  s=s.replace(/\\\[([\s\S]+?)\\\]|\$\$([\s\S]+?)\$\$|\\\(([\s\S]+?)\\\)/g,(m,a,b,c)=>{M.push([(a??b??c).trim(),a!==undefined||b!==undefined]);return"\u0000"+(M.length-1)+"\u0000"});
+  return md0(s).replace(/\u0000(\d+)\u0000/g,(m,i)=>{const[t,d]=M[i];
+    try{return katex.renderToString(t,{displayMode:d,throwOnError:false})}catch(e){return esc(plain(t))}});
+}
+function addU(text,im){$("hello")&&$("hello").remove();const d=document.createElement("div");d.className="u";d.innerHTML="<div>"+(im?`<img src="${im.url}" alt="Фото">`:"")+esc(text)+"</div>";log.appendChild(d);log.scrollTop=log.scrollHeight}
+function addA(html){const d=document.createElement("div");d.className="a";d.innerHTML=html;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+$("att").onclick=()=>$("file").click();
+$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image(),u=URL.createObjectURL(f);
+  im.onload=()=>{const k=Math.min(1,1568/Math.max(im.width,im.height)),c=document.createElement("canvas");
+    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+    const url=c.toDataURL("image/jpeg",.85);img={url,data:url.split(",")[1]};URL.revokeObjectURL(u);prev()};
+  im.src=u;e.target.value=""};
+function prev(){const p=$("prev");p.style.display=img?"flex":"none";p.innerHTML=img?`<img src="${img.url}" alt="Фото"><button id="x" aria-label="Убрать фото">✕</button>`:"";if(img)$("x").onclick=()=>{img=null;prev()}}
+const SYS="Ты Claude, ИИ-ассистент. Общайся тепло, ясно и по делу, на языке пользователя. Ты отлично помогаешь школьникам 8–9 классов (программа России, ОГЭ): объясняй по шагам, с примерами, разбирай фото заданий. Отвечай и на любые другие вопросы. Формулы пиши обычным текстом (x², √, ×), без LaTeX.";
+let engine=null;
+function msgs(){return hist.slice(-12).map((m,i,a)=>i<a.length-1&&Array.isArray(m.content)?{role:m.role,content:"[фото] "+(m.content.find(c=>c.type==="text")||{}).text}:m)}
+async function ai(text,im,w){
+  const mode=document.querySelector('input[name=mode]:checked').value;
+  const content=im?[{type:"text",text:text||"Объясни и реши задание на фото."},{type:"image_url",image_url:{url:im.url}}]:text;
+  hist.push({role:"user",content});
+  try{
+    let a;
+    if(mode==="local"){
+      if(im)throw new Error("В режиме «В браузере» фото не поддерживаются. Переключись на «Онлайн».");
+      if(!navigator.gpu)throw new Error("Этот браузер не поддерживает WebGPU. Используй Chrome или режим «Онлайн».");
+      if(!engine){
+        const wl=await import("https://esm.run/@mlc-ai/web-llm");
+        engine=await wl.CreateMLCEngine("Qwen2.5-1.5B-Instruct-q4f16_1-MLC",{initProgressCallback:r=>{w.innerHTML='<span class="think">✱</span> Загружаю модель: '+Math.round((r.progress||0)*100)+'%'}});
+      }
+      w.innerHTML='<span class="think">✱</span>';
+      const r=await engine.chat.completions.create({messages:[{role:"system",content:SYS},...msgs()],max_tokens:1000});
+      a=r.choices[0].message.content;
+    }else{
+      const r=await fetch("https://text.pollinations.ai/openai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"openai",messages:[{role:"system",content:SYS},...msgs()]})});
+      if(!r.ok)throw new Error("Сервис ответил ошибкой "+r.status+". Попробуй позже или режим «В браузере».");
+      const d=await r.json();a=d.choices[0].message.content;
+    }
+    hist.push({role:"assistant",content:a});return md(a);
+  }catch(e){hist.pop();throw e}
+}
+function solveQuad(s){
+  const t=s.toLowerCase().replace(/\s+/g,"").replace(/²/g,"^2").replace(/,/g,".");
+  const m=t.match(/([+-]?\d*\.?\d*)\*?x\^2([+-]\d*\.?\d*)\*?x(?:([+-]\d+\.?\d*))?=0/);
+  if(!m)return null;
+  const num=v=>v===undefined||v===""?0:(v==="+"?1:v==="-"?-1:parseFloat(v));
+  const a=m[1]===""||m[1]==="+"?1:m[1]==="-"?-1:parseFloat(m[1]);
+  const b=num(m[2]),c=num(m[3]);if(!a)return null;
+  const D=b*b-4*a*c,r=n=>Math.round(n*1e6)/1e6;
+  let o=`<b>Решение.</b> a = ${a}, b = ${b}, c = ${c}<br>D = b² − 4ac = ${r(D)}<br>`;
+  if(D>0)o+=`Два корня: x₁ = ${r((-b+Math.sqrt(D))/(2*a))}, x₂ = ${r((-b-Math.sqrt(D))/(2*a))}`;
+  else if(D===0)o+=`Один корень: x = ${r(-b/(2*a))}`;else o+="Действительных корней нет.";
+  return o;
+}
+function local(text){
+  const t=text.toLowerCase().trim();
+  if(/^(привет|здравствуй|здарова|хай|hi|hello)/.test(t))return"Привет! Чем могу помочь?";
+  const quad=solveQuad(text);if(quad)return quad;
+  let best=null,sc=0;
+  KB.forEach(x=>{let n=0;x.k.forEach(k=>{if(t.includes(k))n+=k.length});if(n>sc){sc=n;best=x}});
+  return best?`<b>${best.t}</b><br>${best.a}`:null;
+}
+async function send(){
+  if(busy)return;
+  const text=q.value.trim(),im=img;if(!text&&!im)return;
+  q.value="";q.style.height="auto";img=null;prev();addU(text,im);view.push({r:"u",t:text,p:!!im});busy=true;
+  const w=addA('<span class="think">✱</span>');
+  try{w.innerHTML=await ai(text,im,w)}
+  catch(e){const l=im?null:local(text);w.innerHTML=l||(/fetch|Load failed|NetworkError/i.test(e.message||"")?"Нет связи с сервисом ответов. Проверь интернет, выключи VPN или выбери режим «В браузере» в кнопке «Режим».":"Не получилось ответить: "+esc(e.message||String(e)))}
+  busy=false;view.push({r:"a",h:w.innerHTML});save();
+  log.scrollTop=log.scrollHeight;
+}
+$("send").onclick=send;
+q.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!/Mobi|Android/i.test(navigator.userAgent)){e.preventDefault();send()}});
+q.addEventListener("input",()=>{q.style.height="auto";q.style.height=Math.min(q.scrollHeight,160)+"px"});
+
+/* ---------- Чаты: хранение в localStorage ---------- */
+const LS="broky_chats",LC="broky_cur";
+let chats=[],cur=null;
+try{chats=JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){chats=[]}
+function store(){try{localStorage.setItem(LS,JSON.stringify(chats));localStorage.setItem(LC,cur||"")}catch(e){}}
+function clean(h){return h.slice(-12).map(m=>Array.isArray(m.content)?{role:m.role,content:"[фото] "+((m.content.find(c=>c.type==="text")||{}).text||"")}:m)}
+function save(){
+  if(!view.length)return;
+  let c=chats.find(x=>x.id===cur);
+  if(!c){cur=String(Date.now());c={id:cur,title:"",hist:[],view:[]};chats.unshift(c)}
+  if(!c.title){const f=view.find(v=>v.r==="u");c.title=((f&&f.t)||"Фото").slice(0,40)}
+  c.hist=clean(hist);c.view=view.slice(-60);
+  store();renderList();
+}
+function renderLog(){
+  log.innerHTML="";
+  if(!view.length){log.innerHTML='<div class="hello" id="hello"><div class="star">✱</div><h1>Чем помочь сегодня?</h1></div>';return}
+  view.forEach(v=>v.r==="u"?addU((v.p?"📷 ":"")+v.t,null):addA(v.h));
+  log.scrollTop=log.scrollHeight;
+}
+function renderList(){
+  const l=$("clist");l.innerHTML="";
+  chats.forEach(c=>{
+    const d=document.createElement("div");d.className="ci"+(c.id===cur?" on":"");
+    const s=document.createElement("span");s.textContent=c.title||"Чат";
+    const b=document.createElement("button");b.textContent="✕";b.setAttribute("aria-label","Удалить чат");
+    b.onclick=e=>{e.stopPropagation();delChat(c.id)};
+    d.onclick=()=>openChat(c.id);d.append(s,b);l.appendChild(d);
+  });
+}
+function openChat(id){
+  if(busy)return;
+  const c=chats.find(x=>x.id===id);if(!c)return;
+  cur=id;hist=c.hist.slice();view=c.view.slice();renderLog();store();renderList();closeDrawer();
+}
+function newChat(){
+  if(busy)return;
+  cur=null;hist=[];view=[];img=null;prev();renderLog();store();renderList();closeDrawer();
+}
+function delChat(id){
+  if(busy)return;
+  chats=chats.filter(x=>x.id!==id);
+  if(id===cur){cur=null;hist=[];view=[];renderLog()}
+  store();renderList();
+}
+function openDrawer(){$("drawer").classList.add("open")}
+function closeDrawer(){$("drawer").classList.remove("open")}
+$("menubtn").onclick=openDrawer;
+$("dback").onclick=closeDrawer;
+$("newchat").onclick=newChat;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
+
+/* ---------- Старт ---------- */
+try{cur=localStorage.getItem(LC)||null}catch(e){}
+if(cur&&chats.some(x=>x.id===cur)){const c=chats.find(x=>x.id===cur);hist=c.hist.slice();view=c.view.slice();renderLog()}else cur=null;
+renderList();
+
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
